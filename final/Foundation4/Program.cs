@@ -1,108 +1,114 @@
 using System;
+using System.Collections.Generic;
 
-// Address class to encapsulate address details
-public class Address
+// Base Activity class
+public class Activity
 {
-    public string Street { get; private set; }
-    public string City { get; private set; }
-    public string State { get; private set; }
-    public string ZipCode { get; private set; }
+    private DateTime date;
+    private int minutes;
 
-    public Address(string street, string city, string state, string zipCode)
+    public Activity(DateTime date, int minutes)
     {
-        Street = street;
-        City = city;
-        State = state;
-        ZipCode = zipCode;
+        this.date = date;
+        this.minutes = minutes;
     }
 
-    public override string ToString()
+    public virtual double GetDistance()
     {
-        return $"{Street}, {City}, {State} {ZipCode}";
+        return 0; // Base class returns 0, overridden in derived classes
+    }
+
+    public virtual double GetSpeed()
+    {
+        return 0; // Base class returns 0, overridden in derived classes
+    }
+
+    public virtual double GetPace()
+    {
+        return 0; // Base class returns 0, overridden in derived classes
+    }
+
+    public virtual string GetSummary()
+    {
+        return $"{date.ToShortDateString()} ({GetType().Name} - {minutes} min): Distance: {GetDistance()} miles, Speed: {GetSpeed()} mph, Pace: {GetPace()} min per mile";
     }
 }
 
-// Base Event class
-public abstract class Event
+// Derived class for Running activity
+public class Running : Activity
 {
-    public string Title { get; private set; }
-    public string Description { get; private set; }
-    public DateTime Date { get; private set; }
-    public string Time { get; private set; }
-    public Address Address { get; private set; }
+    private double distance;
 
-    public Event(string title, string description, DateTime date, string time, Address address)
+    public Running(DateTime date, int minutes, double distance) : base(date, minutes)
     {
-        Title = title;
-        Description = description;
-        Date = date;
-        Time = time;
-        Address = address;
+        this.distance = distance;
     }
 
-    public virtual string GetStandardDetails()
+    public override double GetDistance()
     {
-        return $"Title: {Title}\nDescription: {Description}\nDate: {Date.ToShortDateString()}\nTime: {Time}\nAddress: {Address}";
+        return distance;
     }
 
-    public abstract string GetFullDetails();
-
-    public virtual string GetShortDescription()
+    public override double GetSpeed()
     {
-        return $"Type: {GetType().Name}\nTitle: {Title}\nDate: {Date.ToShortDateString()}";
+        return distance / (minutes / 60);
+    }
+
+    public override double GetPace()
+    {
+        return minutes / distance;
     }
 }
 
-// Derived Lecture class
-public class Lecture : Event
+// Derived class for Cycling activity
+public class Cycling : Activity
 {
-    public string Speaker { get; private set; }
-    public int Capacity { get; private set; }
+    private double speed;
 
-    public Lecture(string title, string description, DateTime date, string time, Address address, string speaker, int capacity)
-        : base(title, description, date, time, address)
+    public Cycling(DateTime date, int minutes, double speed) : base(date, minutes)
     {
-        Speaker = speaker;
-        Capacity = capacity;
+        this.speed = speed;
     }
 
-    public override string GetFullDetails()
+    public override double GetSpeed()
     {
-        return $"{GetStandardDetails()}\nType: Lecture\nSpeaker: {Speaker}\nCapacity: {Capacity}";
+        return speed;
+    }
+
+    public override double GetDistance()
+    {
+        return speed * (minutes / 60);
+    }
+
+    public override double GetPace()
+    {
+        return 60 / speed;
     }
 }
 
-// Derived Reception class
-public class Reception : Event
+// Derived class for Swimming activity
+public class Swimming : Activity
 {
-    public string RSVP_Email { get; private set; }
+    private int laps;
 
-    public Reception(string title, string description, DateTime date, string time, Address address, string rsvpEmail)
-        : base(title, description, date, time, address)
+    public Swimming(DateTime date, int minutes, int laps) : base(date, minutes)
     {
-        RSVP_Email = rsvpEmail;
+        this.laps = laps;
     }
 
-    public override string GetFullDetails()
+    public override double GetDistance()
     {
-        return $"{GetStandardDetails()}\nType: Reception\nRSVP Email: {RSVP_Email}";
-    }
-}
-
-// Derived OutdoorGathering class
-public class OutdoorGathering : Event
-{
-    public string WeatherForecast { get; private set; }
-
-    public OutdoorGathering(string title, string description, DateTime date, string time, Address address, string weatherForecast)
-        : base(title, description, date, time, address)
-    {
-        WeatherForecast = weatherForecast;
+        return laps * 50 / 1000 * 0.62; // Convert meters to miles
     }
 
-    public override string GetFullDetails()
+    public override double GetSpeed()
     {
-        return $"{GetStandardDetails()}\nType: Outdoor Gathering\nWeather Forecast: {WeatherForecast}";
+        return GetDistance() / (minutes / 60);
+    }
+
+    public override double GetPace()
+    {
+        return minutes / GetDistance();
     }
 }
 
@@ -110,32 +116,19 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Create some sample events
-        Address address1 = new Address("123 Main St", "Anytown", "NY", "12345");
-        Lecture lecture = new Lecture("Tech Talk", "A talk on the latest in tech", new DateTime(2024, 6, 15), "10:00 AM", address1, "John Doe", 100);
+        // Create a list of activities
+        List<Activity> activities = new List<Activity>();
 
-        Address address2 = new Address("456 Elm St", "Othertown", "CA", "67890");
-        Reception reception = new Reception("Networking Event", "An event to network with professionals", new DateTime(2024, 7, 20), "6:00 PM", address2, "rsvp@example.com");
+        // Add different activities to the list
+        activities.Add(new Running(new DateTime(2022, 11, 3), 30, 3.0));
+        activities.Add(new Running(new DateTime(2022, 11, 3), 30, 4.8));
+        activities.Add(new Cycling(new DateTime(2022, 11, 3), 45, 15.0));
+        activities.Add(new Swimming(new DateTime(2022, 11, 3), 45, 20));
 
-        Address address3 = new Address("789 Oak St", "Sometown", "TX", "11223");
-        OutdoorGathering outdoorGathering = new OutdoorGathering("Picnic in the Park", "A casual outdoor gathering", new DateTime(2024, 8, 5), "1:00 PM", address3, "Sunny with a chance of clouds");
-
-        // Generate and display the marketing messages for each event
-        Event[] events = { lecture, reception, outdoorGathering };
-
-        foreach (Event ev in events)
+        // Display summary for each activity
+        foreach (var activity in activities)
         {
-            Console.WriteLine("Standard Details:");
-            Console.WriteLine(ev.GetStandardDetails());
-            Console.WriteLine();
-
-            Console.WriteLine("Full Details:");
-            Console.WriteLine(ev.GetFullDetails());
-            Console.WriteLine();
-
-            Console.WriteLine("Short Description:");
-            Console.WriteLine(ev.GetShortDescription());
-            Console.WriteLine();
+            Console.WriteLine(activity.GetSummary());
         }
     }
 }
